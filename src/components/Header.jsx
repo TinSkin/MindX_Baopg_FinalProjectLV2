@@ -11,16 +11,8 @@ function Header() {
 
   const [user, setUser] = useState(null);
 
-  const handleDashboardClick = () => {
-    navigate("/");
-  };
-
   const handleLoginClick = () => {
     navigate("/login");
-  };
-
-  const handleMenuClick = () => {
-    navigate("/menu");
   };
 
   const handleLogout = () => {
@@ -84,7 +76,7 @@ function Header() {
                   : "hover:text-camel"
               }`}
             >
-              Menu
+              Thực đơn
             </Link>
           </ul>
 

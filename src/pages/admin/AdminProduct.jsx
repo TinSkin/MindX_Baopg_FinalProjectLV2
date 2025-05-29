@@ -5,7 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 // Import các icon Pencil, Eye, Trash2 từ thư viện lucide-react để dùng trong giao diện
-import { Pencil, Eye, Trash2 } from "lucide-react";
+import { Currency, Pencil, Trash2 } from "lucide-react";
+
+// Formik Yup
+import { Formik, Form, Field, ErrorMessage } from "formik";
 
 // Import Swiper
 import "swiper/css"; // Import CSS của Swiper để hiển thị carousel ảnh
@@ -16,7 +19,13 @@ import { Swiper, SwiperSlide } from "swiper/react"; // Import Swiper và SwiperS
 // Import hàm fetchProducts từ productAPI để lấy danh sách sản phẩm từ server
 import { fetchProducts } from "../../api/productAPI";
 
-import Header from "../../components/Header";
+// Import Schema
+import { addProductSchema } from "../../utils/addProductSchema";
+import { editProductSchema } from "../../utils/editProductSchema";
+
+// Import component 
+import Header from "../../components/Admin/Header";
+import Notification from "../../components/Notification";
 
 const AdminProduct = () => {
   // Khởi tạo hook useNavigate để điều hướng trang
@@ -33,6 +42,9 @@ const AdminProduct = () => {
   // Trạng thái imagePreviews: Lưu danh sách URL ảnh để hiển thị preview trong modal
   const [imagePreviews, setImagePreviews] = useState([]);
 
+  // Trạng thái editingProduct: Lưu thông tin sản phẩm đang được chỉnh sửa
+  const [editingProduct, setEditingProduct] = useState(null)
+
   // Modal
   const [showAddModal, setShowAddModal] = useState(false); // Trạng thái showAddModal: Kiểm soát hiển thị modal thêm sản phẩm mới
   const [showEditModal, setShowEditModal] = useState(false); // Trạng thái showEditModal: Kiểm soát hiển thị modal chỉnh sửa sản phẩm
@@ -46,6 +58,22 @@ const AdminProduct = () => {
   const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái statusFilter: Lưu trạng thái lọc (all, available, unavailable)
   const [sortOption, setSortOption] = useState(""); // Trạng thái sortOption: Lưu tùy chọn sắp xếp (giá, ngày, tăng/giảm)
 
+  // Topping
+  const availableToppings = [
+    { name: "Trân Châu", extraPrice: 12000 },
+    { name: "Thạch Dừa", extraPrice: 4000 },
+    { name: "Thạch Thảo Mộc", extraPrice: 12000 },
+    { name: "Pudding", extraPrice: 16800 },
+    { name: "Kem Phô Mai", extraPrice: 19200 },
+    { name: "Kem Tươi", extraPrice: 12000 },
+    { name: "Nha Đam", extraPrice: 14400 },
+    { name: "Thạch Trái Cây", extraPrice: 14400 },
+    { name: "Socola Chip", extraPrice: 14400 },
+    { name: "Thạch Trái Cây", extraPrice: 14400 },
+    { name: "Pudding Trứng", extraPrice: 16800 },
+    { name: "Đậu Đỏ", extraPrice: 14400 },
+  ];
+  
   // Hàm parseCustomDate: Chuyển đổi định dạng ngày tháng dạng "15, thg 10, 2024" thành Date object để sắp xếp
   const parseCustomDate = (dateStr) => {
     if (!dateStr || typeof dateStr !== "string") {
@@ -75,9 +103,8 @@ const AdminProduct = () => {
         return new Date(0); // Trả về ngày mặc định nếu lỗi
       }
       const monthKey = month.toLowerCase(); // Chuyển tháng về chữ thường để ánh xạ
-      const engDateStr = `${day.replace(/\D/g, "")} ${
-        months[monthKey]
-      } ${year}`; // Tạo chuỗi ngày dạng tiếng Anh: "15 Jan 2024"
+      const engDateStr = `${day.replace(/\D/g, "")} ${months[monthKey]
+        } ${year}`; // Tạo chuỗi ngày dạng tiếng Anh: "15 Jan 2024"
       return new Date(engDateStr) || new Date(0); // Chuyển thành Date object, trả về ngày mặc định nếu lỗi
     }
     return new Date(dateStr) || new Date(0); // Nếu không phải định dạng tiếng Việt, thử chuyển trực tiếp thành Date, trả về ngày mặc định nếu lỗi
@@ -89,7 +116,7 @@ const AdminProduct = () => {
     try {
       setIsLoading(true); // Bật trạng thái loading
       const result = await fetchProducts(); // Gọi API để lấy danh sách sản phẩm
-      console.log("Raw result from API:", result[0].data); // Log dữ liệu thô từ API để debug
+      // console.log("Raw result from API:", result[0].data); // Log dữ liệu thô từ API để debug
 
       // PRODUCTS LIST
       let productsList = []; // Khởi tạo mảng để lưu danh sách sản phẩm
@@ -245,54 +272,57 @@ const AdminProduct = () => {
   };
 
   // Hàm handleAddProduct: Thêm sản phẩm mới
-  const handleAddProduct = async () => {
+  const handleAddProduct = async (values) => {
     setIsLoading(true); // Bật trạng thái loading
 
-    const newId = document.getElementById("newId").value; // Lấy ID từ input
-    const newName = document.getElementById("newName").value; // Lấy tên từ input
-    const newImageInput = document.getElementById("newImages").value; // Lấy URL ảnh từ input
-    const newPrice = document.getElementById("newPrice").value; // Lấy giá từ input
+    const image = values.image
+    // Trim các trường chuỗi
+    const id = values.id.trim();
+    const name = values.name.trim();
+    const basePrice = values.basePrice;
+    const description = values.description;
+    const category = values.category;
 
-    if (!newId || !newName || !newPrice || !newImageInput) {
-      // Kiểm tra nếu thiếu thông tin
-      console.log(
-        "Lỗi: Vui lòng nhập đầy đủ thông tin: ID, Tên, Giá, và URL ảnh."
-      );
-      alert("Vui lòng nhập đầy đủ thông tin: ID, Tên, Giá, và URL ảnh.");
-      setIsLoading(false);
-      return;
-    }
+    // Tách URL ảnh thành mảng
+    const trimmedImages = image.split(",").map((s) => s.trim()).filter((s) => s);
 
-    const images = newImageInput // Tách URL ảnh thành mảng
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s);
-    if (images.length === 0) {
-      // Kiểm tra nếu không có URL ảnh hợp lệ
-      console.log("Lỗi: Vui lòng nhập ít nhất một URL ảnh hợp lệ.");
-      alert("Vui lòng nhập ít nhất một URL ảnh hợp lệ.");
-      setIsLoading(false);
-      return;
-    }
+    // Chuyển sizeOptions mảng thành object với parseInt giá
+    const sizeOptions = values.sizeOptions.map(({ size, price }) => ({
+      size: size.trim(),
+      price: parseInt(price) || 0,
+    }));
 
+    // Xử lý toppings 
+    const toppings = values.toppings.map((topping) => {
+      const found = availableToppings.find((t) => t.name === topping.name);
+      return found || { name: topping.name, extraPrice: 0 };
+    });
+
+    // New Product
     const newProduct = {
       // Tạo object sản phẩm mới
-      id: newId,
-      name: newName,
-      images,
-      price: parseInt(newPrice),
+      id,
+      name,
+      description,
+      category,
+      price: parseInt(basePrice) || 0,
+      currency: "VNĐ",
+      sizeOptions,
+      toppings,
+      status: "available",
       date: new Date().toLocaleDateString("vi-VN", {
         // Tạo ngày hiện tại theo định dạng tiếng Việt
         day: "2-digit",
         month: "short",
         year: "numeric",
       }),
-      status: "available",
+      image: trimmedImages,
     };
 
     //Todo: Hiện tại tới dòng này
     try {
-      const currentResult = await fetchProducts(); // Lấy danh sách sản phẩm hiện tại từ server
+      // Lấy danh sách sản phẩm hiện tại từ server
+      const currentResult = await fetchProducts();
       let currentProducts = [];
       if (Array.isArray(currentResult)) {
         currentResult.forEach((item) => {
@@ -309,25 +339,27 @@ const AdminProduct = () => {
         });
       }
 
+      // Loại bỏ sản phẩm trùng lặp
       const uniqueCurrentProducts = Array.from(
-        // Loại bỏ sản phẩm trùng lặp
         new Map(currentProducts.map((item) => [item.id, item])).values()
       );
 
+      // Kiểm tra nếu ID đã tồn tại
       const isIdExists = uniqueCurrentProducts.some(
-        // Kiểm tra nếu ID đã tồn tại
-        (product) => product.id === newId
+        (product) => product.id === id
       );
+
       if (isIdExists) {
-        console.log("Lỗi: Mã sản phẩm đã tồn tại. Vui lòng chọn mã khác.");
-        alert("Mã sản phẩm đã tồn tại. Vui lòng chọn mã khác.");
+        Notification.error("Mã sản phẩm đã tồn tại.", "Vui lòng chọn mã khác.");
         setIsLoading(false);
         return;
       }
 
-      const updatedProducts = [...uniqueCurrentProducts, newProduct]; // Thêm sản phẩm mới vào danh sách
+      // Thêm sản phẩm mới vào danh sách
+      const updatedProducts = [...uniqueCurrentProducts, newProduct];
 
-      const response = await fetch(
+      // Gửi yêu cầu thêm sản phẩm lên server POST, dùng toast.promise để báo trạng thái khi POST
+      const postPromise = await fetch(
         // Gửi yêu cầu thêm sản phẩm lên server
         "https://mindx-mockup-server.vercel.app/api/resources/products_drink?apiKey=67fe686cc590d6933cc1248b",
         {
@@ -339,19 +371,26 @@ const AdminProduct = () => {
         }
       );
 
+      // Hiển thị trạng thái bằng toast
+      Notification.promise(postPromise, {
+        loading: "Đang thêm sản phẩm...",
+        success: "Thêm sản phẩm thành công!",
+        error: "Không thể thêm sản phẩm. Vui lòng thử lại.",
+      });
+
+      // Đợi kết quả thực sự từ server
+      const response = await postPromise;
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Server response status:", response.status);
-        console.error("Server response text:", errorText);
-        throw new Error(
-          "Lỗi từ server: " + response.statusText + " - " + errorText
-        );
+        throw new Error(`Lỗi từ server: ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
       console.log("Server response after adding product:", result);
 
-      await loadProducts(); // Tải lại danh sách sản phẩm
+      // Tải lại danh sách sản phẩm
+      await loadProducts();
 
       const addedProduct = newProduct;
       console.log("Added product:", addedProduct);
@@ -359,8 +398,7 @@ const AdminProduct = () => {
       setShowAddModal(false); // Đóng modal
       setImagePreviews([]); // Reset preview ảnh
     } catch (error) {
-      console.error("Lỗi khi thêm sản phẩm:", error);
-      alert("Thêm thất bại. Thử lại sau.");
+      Notification.error("Thêm sản phẩm thất bại", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -374,44 +412,61 @@ const AdminProduct = () => {
       return;
     }
     setEditingProduct(product); // Lưu thông tin sản phẩm cần chỉnh sửa
-    setImagePreviews(product.images); // Hiển thị preview ảnh của sản phẩm
+    console.log(product)
+    setImagePreviews(product.image); // Hiển thị preview ảnh của sản phẩm
     setShowEditModal(true); // Mở modal chỉnh sửa
   };
 
   // Hàm handleUpdateProduct: Cập nhật sản phẩm
-  const handleUpdateProduct = async () => {
+  const handleUpdateProduct = async (values) => {
     setIsLoading(true);
 
-    const updatedId = document.getElementById("editId").value;
-    const updatedName = document.getElementById("editName").value;
-    const updatedImageInput = document.getElementById("editImages").value;
-    const updatedPrice = document.getElementById("editPrice").value;
+    // image ở đây đã là mảng string[], chỉ cần trim từng phần tử
+    const image = values.image
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
 
-    if (!updatedId || !updatedName || !updatedPrice || !updatedImageInput) {
-      alert("Vui lòng nhập đầy đủ thông tin: ID, Tên, Giá, và URL ảnh.");
-      setIsLoading(false);
-      return;
-    }
-
-    const images = updatedImageInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s);
-    if (images.length === 0) {
+    if (image.length === 0) {
       alert("Vui lòng nhập ít nhất một URL ảnh hợp lệ.");
       setIsLoading(false);
       return;
     }
 
+    // Trim các trường chuỗi
+    const id = values.id.trim();
+    const name = values.name.trim();
+    const basePrice = values.basePrice;
+    const description = values.description;
+    const category = values.category;
+
+    // Chuyển sizeOptions mảng thành object với parseInt giá
+    const sizeOptions = values.sizeOptions.map(({ size, price }) => ({
+      size: size.trim(),
+      price: parseInt(price) || 0,
+    }));
+
+    // Xử lý toppings 
+    const toppings = values.toppings.map((topping) => {
+      const found = availableToppings.find((t) => t.name === topping.name);
+      return found || { name: topping.name, extraPrice: 0 };
+    });
+
+    // Updated Product
     const updatedProduct = {
-      id: updatedId,
-      name: updatedName,
-      images,
-      price: parseInt(updatedPrice),
-      date: editingProduct.date,
+      id,
+      name,
+      description,
+      category,
+      price: parseInt(basePrice) || 0,
+      currency: "VNĐ",
+      sizeOptions,
+      toppings,
       status: "available",
+      date: editingProduct.date,
+      image,
     };
 
+    // Fetch danh sách hiện tại
     try {
       const currentResult = await fetchProducts();
       let currentProducts = [];
@@ -436,10 +491,10 @@ const AdminProduct = () => {
 
       const isIdExists = uniqueCurrentProducts.some(
         (product) =>
-          product.id === updatedId && product.id !== editingProduct.id
+          product.id === id && product.id !== editingProduct.id
       );
       if (isIdExists) {
-        alert("Mã sản phẩm đã tồn tại. Vui lòng chọn mã khác.");
+        Notification.error("Mã sản phẩm đã tồn tại", "Vui lòng chọn mã khác.");
         setIsLoading(false);
         return;
       }
@@ -448,7 +503,7 @@ const AdminProduct = () => {
         product.id === editingProduct.id ? updatedProduct : product
       );
 
-      const response = await fetch(
+      const postPromise = await fetch(
         "https://mindx-mockup-server.vercel.app/api/resources/products_drink?apiKey=67fe686cc590d6933cc1248b",
         {
           method: "POST",
@@ -459,26 +514,32 @@ const AdminProduct = () => {
         }
       );
 
+      // 👉 Thêm Notification trạng thái
+      Notification.promise(postPromise, {
+        loading: "Đang cập nhật sản phẩm...",
+        success: "Cập nhật thành công!",
+        error: "Không thể cập nhật. Vui lòng thử lại.",
+      });
+
+      const response = await postPromise;
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Server response status:", response.status);
-        console.error("Server response text:", errorText);
-        throw new Error(
-          "Lỗi từ server: " + response.statusText + " - " + errorText
-        );
+        throw new Error(`Lỗi từ server: ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log("Server response after update:", result);
+      console.log("Server response after adding product:", result);
 
       await loadProducts();
+      // Hiển thị thông báo thành công
+      Notification.success("Cập nhật thành công", "Sản phẩm đã được cập nhật.");
 
       setShowEditModal(false);
       setImagePreviews([]);
       setEditingProduct(null);
     } catch (error) {
-      console.error("Lỗi khi chỉnh sửa sản phẩm:", error);
-      alert(`Chỉnh sửa thất bại: ${error.message}. Thử lại sau.`);
+      Notification.error("Cập nhật thất bại", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -882,7 +943,9 @@ const AdminProduct = () => {
                                 :{" "}
                               </span>
                               <span className="text-dark_blue">
-                                {option.price}₫
+                                {typeof option.price === "number"
+                                  ? option.price.toLocaleString()
+                                  : "N/A"}{" "}₫
                               </span>
                             </div>
                           ))}
@@ -902,7 +965,9 @@ const AdminProduct = () => {
                                 :{" "}
                               </span>
                               <span className="text-dark_blue">
-                                {option.extraPrice}₫
+                                {typeof option.extraPrice === "number"
+                                  ? option.extraPrice.toLocaleString()
+                                  : "N/A"}{" "}₫
                               </span>
                             </div>
                           ))}
@@ -910,11 +975,10 @@ const AdminProduct = () => {
                       {/* STATUS */}
                       <td className="p-3">
                         <span
-                          className={`px-2 py-1 text-lg rounded font-semibold ${
-                            item.status === "available"
-                              ? "text-green-700 bg-green-100"
-                              : "text-red-700 bg-red-100"
-                          }`} // Đổi màu trạng thái
+                          className={`px-2 py-1 text-lg rounded font-semibold ${item.status === "available"
+                            ? "text-green-700 bg-green-100"
+                            : "text-red-700 bg-red-100"
+                            }`} // Đổi màu trạng thái
                         >
                           {item.status === "available"
                             ? "Available"
@@ -938,7 +1002,6 @@ const AdminProduct = () => {
                               opacity: item.status === "unavailable" ? 0.5 : 1,
                             }}
                           />
-                          <Eye className="w-4 h-4 text-gray-600 cursor-pointer" />{" "}
                           {/* Icon xem chi tiết */}
                           <Trash2
                             className="w-4 h-4 text-red-600 cursor-pointer"
@@ -988,11 +1051,10 @@ const AdminProduct = () => {
                   <button
                     key={number}
                     onClick={() => paginate(number)}
-                    className={`px-3 py-1 rounded font-semibold ${
-                      currentPage === number
-                        ? "bg-green_starbuck text-white"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    }`}
+                    className={`px-3 py-1 rounded font-semibold ${currentPage === number
+                      ? "bg-green_starbuck text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
+                      }`}
                   >
                     {number}
                   </button>
@@ -1011,216 +1073,498 @@ const AdminProduct = () => {
       </div>
       {showAddModal && ( // Hiển thị modal thêm sản phẩm
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white p-6 rounded shadow-md w-[400px] space-y-4">
-            <h2 className="text-xl font-bold">Thêm sản phẩm mới</h2>
-            <input
-              type="text"
-              placeholder="ID"
-              className="w-full p-2 border rounded"
-              id="newId"
-            />
-            <input
-              type="text"
-              placeholder="Tên sản phẩm"
-              className="w-full p-2 border rounded"
-              id="newName"
-            />
-            <input
-              type="text"
-              placeholder="URL ảnh (dùng dấu phẩy để nhập nhiều URL)"
-              className="w-full p-2 border rounded"
-              id="newImages"
-              onChange={handleImageInputChange}
-            />
-            <div className="flex flex-wrap gap-2">
-              {imagePreviews.map(
-                (
-                  src,
-                  idx // Hiển thị preview ảnh
-                ) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`preview-${idx}`}
-                    className="w-24 h-24 object-cover rounded"
-                    onError={
-                      (e) =>
-                        (e.target.src =
-                          "https://via.placeholder.com/150?text=Image+Not+Found") // Hiển thị ảnh mặc định nếu lỗi
-                    }
-                  />
-                )
-              )}
-            </div>
-            <input
-              type="number"
-              placeholder="Giá (VNĐ)"
-              className="w-full p-2 border rounded"
-              id="newPrice"
-            />
-            <input
-              type="text"
-              disabled
-              value={new Date().toLocaleDateString("vi-VN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-              className="w-full p-2 border rounded bg-gray-200 cursor-not-allowed"
-              id="newDate"
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setImagePreviews([]);
-                }}
-                className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
-                disabled={isLoading}
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleAddProduct}
-                className="relative bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-green-400"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <svg
-                      className="animate-spin h-5 w-5 mr-2 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
+          <Formik
+            initialValues={{
+              id: "",
+              name: "",
+              image: "",
+              basePrice: "",
+              sizeOptions: [],
+              toppings: [],
+              description: "",
+              category: "",
+            }}
+            validationSchema={addProductSchema}
+            onSubmit={(values) => {
+              console.log("Submitting", values);
+              handleAddProduct(values);
+            }}
+          >
+            {({ values, setFieldValue }) => (
+              <Form className="bg-white p-6 rounded shadow-md w-[900px] space-y-4">
+                <h2 className="text-xl font-bold text-green_starbuck">Thêm sản phẩm mới</h2>
+
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    {/* Thêm ID */}
+                    <Field name="id" className="w-full p-2 border rounded" placeholder="ID" />
+                    <ErrorMessage name="id" component="div" className="text-red-500 text-sm" />
+                  </div>
+                  <div className="flex-1">
+                    {/* Thêm Tên */}
+                    <Field name="name" className="w-full p-2 border rounded" placeholder="Tên sản phẩm" />
+                    <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                  </div>
+                </div>
+
+                {/* Mô tả sản phẩm */}
+                <Field
+                  name="description"
+                  as="textarea"
+                  className="w-full p-2 border rounded"
+                  placeholder="Mô tả sản phẩm"
+                />
+                <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+
+                {/* Danh mục sản phẩm */}
+                <Field
+                  name="category"
+                  as="select"
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Chọn danh mục</option>
+                  <option value="Cà Phê">Cà phê</option>
+                  <option value="Trà">Trà</option>
+                  <option value="Frappuccino">Frappuccino</option>
+                  <option value="Đồ Uống">Đồ uống</option>
+                  <option value="Sinh Tố">Sinh Tố</option>
+                  <option value="Nước Trái Cây">Nước trái cây</option>
+                  <option value="Khác">Khác</option>
+                </Field>
+                <ErrorMessage name="category" component="div" className="text-red-500 text-sm" />
+
+                {/* Thêm Ảnh */}
+                <Field name="image">
+                  {({ field, form }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      className="w-full p-2 border rounded"
+                      placeholder="URL ảnh (dùng dấu phẩy để nhập nhiều URL)"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        form.setFieldValue("image", value);      // Cập nhật Formik
+                        handleImageInputChange(e);               // Gọi hàm xử lý preview
+                      }}
+                    />
+                  )}
+                </Field>
+                <ErrorMessage name="image" component="div" className="text-red-500 text-sm" />
+                <div className="flex flex-wrap gap-2">
+                  {imagePreviews.map(
+                    (
+                      src,
+                      idx // Hiển thị preview ảnh
+                    ) => (
+                      <img
+                        key={idx}
+                        src={src}
+                        alt={`preview-${idx}`}
+                        className="w-24 h-24 object-cover rounded"
+                        onError={
+                          (e) =>
+                          (e.target.src =
+                            "https://via.placeholder.com/150?text=Image+Not+Found") // Hiển thị ảnh mặc định nếu lỗi
+                        }
                       />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
+                    )
+                  )}
+                </div>
+
+                {/* Thêm Giá */}
+                <Field name="basePrice"
+                  type="number"
+                  className="w-full p-2 border rounded"
+                  placeholder="Giá (VNĐ)"
+                />
+                <ErrorMessage name="basePrice" component="div" className="text-red-500 text-sm" />
+
+                {/* Thêm Size */}
+                {["S", "M", "L"].map((size) => {
+                  const isChecked = values.sizeOptions.some((opt) => opt.size === size);
+                  const currentPrice = values.sizeOptions.find((opt) => opt.size === size)?.price || "";
+
+                  return (
+                    <div key={size} className="flex items-center gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFieldValue("sizeOptions", [...values.sizeOptions, { size, price: "" }]);
+                          } else {
+                            setFieldValue(
+                              "sizeOptions",
+                              values.sizeOptions.filter((opt) => opt.size !== size)
+                            );
+                          }
+                        }}
                       />
-                    </svg>
-                    Đang thêm...
-                  </span>
-                ) : (
-                  "Thêm"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+                      <span className="w-6">{size}</span>
+                      <input
+                        type="number"
+                        placeholder={`Giá size ${size}`}
+                        className="flex-1 p-2 border rounded"
+                        value={currentPrice}
+                        onChange={(e) => {
+                          setFieldValue(
+                            "sizeOptions",
+                            values.sizeOptions.map((opt) =>
+                              opt.size === size ? { ...opt, price: e.target.value } : opt
+                            )
+                          );
+                        }}
+                        disabled={!isChecked}
+                      />
+                    </div>
+                  );
+                })}
+
+                {/* Thêm Topping */}
+                <div>
+                  <label className="block font-medium mb-1">Chọn Topping</label>
+                  <div className="grid grid-cols-3 gap-x-4 gap-y-1 ">
+                    {availableToppings.map((topping, index) => {
+                      const isChecked = values.toppings.some(t => t.name === topping.name);
+                      return (
+                        <label key={index} className="flex items-center mb-1">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const updatedToppings = e.target.checked
+                                ? [...values.toppings, topping]
+                                : values.toppings.filter((t) => t.name !== topping.name);
+                              setFieldValue("toppings", updatedToppings);
+                            }}
+                            className="mr-2"
+                          />
+                          {topping.name} (+{topping.extraPrice.toLocaleString("vi-VN")}₫)
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Thêm Date */}
+                <input
+                  type="text"
+                  disabled
+                  value={new Date().toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                  className="w-full p-2 border rounded bg-gray-200 cursor-not-allowed"
+                />
+
+                {/* Button  */}
+                <div className="flex justify-end space-x-2">
+                  {/* Button Hủy */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setImagePreviews([]);
+                    }}
+                    className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+                    disabled={isLoading}
+                  >
+                    Hủy
+                  </button>
+                  {/* Button Thêm */}
+                  <button
+                    type="submit"
+                    className="relative bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-green-400"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center">
+                        <svg
+                          className="animate-spin h-5 w-5 mr-2 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          />
+                        </svg>
+                        Đang thêm...
+                      </span>
+                    ) : (
+                      "Thêm"
+                    )}
+                  </button>
+                </div>
+              </Form>
+            )}
+          </Formik>
+        </div >
       )}
-      {showEditModal &&
+      {
+        showEditModal &&
         editingProduct && ( // Hiển thị modal chỉnh sửa
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-            <div className="bg-white p-6 rounded shadow-md w-[400px] space-y-4">
-              <h2 className="text-xl font-bold">Chỉnh sửa sản phẩm</h2>
-              <input
-                type="text"
-                placeholder="ID"
-                className="w-full p-2 border rounded"
-                id="editId"
-                defaultValue={editingProduct.id}
-              />
-              <input
-                type="text"
-                placeholder="Tên sản phẩm"
-                className="w-full p-2 border rounded"
-                id="editName"
-                defaultValue={editingProduct.name}
-              />
-              <input
-                type="text"
-                placeholder="URL ảnh (dùng dấu phẩy để nhập nhiều URL)"
-                className="w-full p-2 border rounded"
-                id="editImages"
-                defaultValue={editingProduct.images.join(", ")}
-                onChange={handleImageInputChange}
-              />
-              <div className="flex flex-wrap gap-2">
-                {imagePreviews.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`preview-${idx}`}
-                    className="w-24 h-24 object-cover rounded"
-                    onError={(e) =>
-                      (e.target.src =
-                        "https://via.placeholder.com/150?text=Image+Not+Found")
-                    }
+            <Formik
+              initialValues={{
+                id: editingProduct?.id || "",
+                name: editingProduct?.name || "",
+                image: Array.isArray(editingProduct?.image)
+                  ? editingProduct.image // ✅ giữ nguyên dạng mảng
+                  : typeof editingProduct?.image === "string"
+                    ? editingProduct.image.split(",").map((s) => s.trim()).filter(Boolean)
+                    : [],
+                basePrice: editingProduct?.price || "",
+                sizeOptions: editingProduct?.sizeOptions || [], // <-- quan trọng
+                toppings: editingProduct?.toppings || [],
+                description: editingProduct?.description || "",
+                category: editingProduct?.category?.trim() || "",
+              }}
+              validationSchema={editProductSchema}
+              onSubmit={(values) => {
+                console.log("Submitting", values);
+                handleUpdateProduct(values);
+              }}
+            >
+              {({ values, setFieldValue }) => (
+                <Form className="bg-white p-6 rounded shadow-md w-[900px] space-y-4">
+                  <h2 className="text-xl font-bold text-green_starbuck">Chỉnh sửa sản phẩm</h2>
+
+                  {/* ID và Tên sản phẩm trong cùng hàng */}
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Field name="id" className="w-full p-2 border rounded" placeholder="ID" />
+                      <ErrorMessage name="id" component="div" className="text-red-500 text-sm" />
+                    </div>
+                    <div className="flex-1">
+                      <Field name="name" className="w-full p-2 border rounded" placeholder="Tên sản phẩm" />
+                      <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                    </div>
+                  </div>
+
+                  {/* Mô tả sản phẩm */}
+                  <Field
+                    name="description"
+                    as="textarea"
+                    className="w-full p-2 border rounded"
+                    placeholder="Mô tả sản phẩm"
                   />
-                ))}
-              </div>
-              <input
-                type="number"
-                placeholder="Giá (VNĐ)"
-                className="w-full p-2 border rounded"
-                id="editPrice"
-                defaultValue={editingProduct.price}
-              />
-              <input
-                type="text"
-                disabled
-                value={editingProduct.date}
-                className="w-full p-2 border rounded bg-gray-200 cursor-not-allowed"
-                id="editDate"
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setImagePreviews([]);
-                    setEditingProduct(null);
-                  }}
-                  className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
-                  disabled={isLoading}
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleUpdateProduct}
-                  className="relative bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-blue-400"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin h-5 w-5 mr-2 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
+                  <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+
+                  {/* Danh mục sản phẩm */}
+                  <Field
+                    name="category"
+                    as="select"
+                    className="w-full p-2 border rounded"
+                    value={values.category} // thêm dòng này
+                  >
+                    <option value="">Chọn danh mục</option>
+                    <option value="Cà Phê">Cà phê</option>
+                    <option value="Trà">Trà</option>
+                    <option value="Frappuccino">Frappuccino</option>
+                    <option value="Đồ Uống">Đồ uống</option>
+                    <option value="Sinh Tố">Sinh Tố</option>
+                    <option value="Nước Trái Cây">Nước trái cây</option>
+                    <option value="Khác">Khác</option>
+                  </Field>
+                  <ErrorMessage name="category" component="div" className="text-red-500 text-sm" />
+
+                  {/* Thêm Ảnh */}
+                  <Field name="image">
+                    {({ field, form }) => (
+                      <input
+                        {...field}
+                        type="text"
+                        className="w-full p-2 border rounded"
+                        placeholder="URL ảnh (dùng dấu phẩy để nhập nhiều URL)"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const imageArray = value
+                            .split(",")
+                            .map((url) => url.trim())
+                            .filter((url) => url);
+                          form.setFieldValue("image", imageArray);
+                          handleImageInputChange(e);
+                        }}
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage name="image" component="div" className="text-red-500 text-sm" />
+                  <div className="flex flex-wrap gap-2">
+                    {imagePreviews.map(
+                      (
+                        src,
+                        idx // Hiển thị preview ảnh
+                      ) => (
+                        <img
+                          key={idx}
+                          src={src}
+                          alt={`preview-${idx}`}
+                          className="w-24 h-24 object-cover rounded"
+                          onError={
+                            (e) =>
+                            (e.target.src =
+                              "https://via.placeholder.com/150?text=Image+Not+Found") // Hiển thị ảnh mặc định nếu lỗi
+                          }
                         />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8H4z"
+                      )
+                    )}
+                  </div>
+
+                  {/* Thêm Giá */}
+                  <Field
+                    name="basePrice"
+                    type="number"
+                    className="w-full p-2 border rounded"
+                    placeholder="Giá (VNĐ)"
+                  />
+                  <ErrorMessage name="basePrice" component="div" className="text-red-500 text-sm" />
+
+                  {/* Thêm Size */}
+                  {["S", "M", "L"].map((size) => {
+                    const isChecked = values.sizeOptions.some((opt) => opt.size === size);
+                    const currentPrice = values.sizeOptions.find((opt) => opt.size === size)?.price || "";
+
+                    return (
+                      <div key={size} className="flex items-center gap-2 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          defaultValue={editingProduct.size}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFieldValue("sizeOptions", [...values.sizeOptions, { size, price: "" }]);
+                            } else {
+                              setFieldValue(
+                                "sizeOptions",
+                                values.sizeOptions.filter((opt) => opt.size !== size)
+                              );
+                            }
+                          }}
                         />
-                      </svg>
-                      Đang cập nhật...
-                    </span>
-                  ) : (
-                    "Cập nhật"
-                  )}
-                </button>
-              </div>
-            </div>
+                        <span className="w-6">{size}</span>
+                        <input
+                          type="number"
+                          placeholder={`Giá size ${size}`}
+                          className="flex-1 p-2 border rounded"
+                          value={currentPrice}
+                          onChange={(e) => {
+                            setFieldValue(
+                              "sizeOptions",
+                              values.sizeOptions.map((opt) =>
+                                opt.size === size ? { ...opt, price: e.target.value } : opt
+                              )
+                            );
+                          }}
+                          disabled={!isChecked}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* Thêm Topping */}
+                  <div>
+                    <label className="block font-medium mb-1">Chọn Topping</label>
+                    <div className="grid grid-cols-3 gap-x-4 gap-y-1 ">
+                      {availableToppings.map((topping, index) => {
+                        const isChecked = values.toppings.some(
+                          (t) => t.name.toLowerCase() === topping.name.toLowerCase()
+                        );
+                        return (
+                          <label key={index} className="flex items-center mb-1">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                const updatedToppings = e.target.checked
+                                  ? [...values.toppings, topping]
+                                  : values.toppings.filter((t) => t.name !== topping.name);
+                                setFieldValue("toppings", updatedToppings);
+                              }}
+                              className="mr-2"
+                            />
+                            {topping.name} (+{topping.extraPrice.toLocaleString("vi-VN")}₫)
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Thêm Date */}
+                  <input
+                    type="text"
+                    disabled
+                    value={new Date().toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                    className="w-full p-2 border rounded bg-gray-200 cursor-not-allowed"
+                  />
+
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => {
+                        setShowEditModal(false);
+                        setImagePreviews([]);
+                        setEditingProduct(null);
+                      }}
+                      className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+                      disabled={isLoading}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      className="relative bg-green_starbuck text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-blue-400"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center">
+                          <svg
+                            className="animate-spin h-5 w-5 mr-2 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8H4z"
+                            />
+                          </svg>
+                          Đang cập nhật...
+                        </span>
+                      ) : (
+                        "Cập nhật"
+                      )}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
-        )}
+        )
+      }
     </>
   );
 };

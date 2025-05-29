@@ -1,3 +1,5 @@
+import Notification from "../components/Notification"; // import Notification đúng đường dẫn
+
 // Hàm bất đồng bộ để lấy danh sách sản phẩm từ mock API
 export const fetchProducts = async () => {
     try {
@@ -17,7 +19,7 @@ export const fetchProducts = async () => {
         return Array.isArray(products) ? products : [];
     } catch (error) {
         // Log lỗi nếu xảy ra sự cố trong quá trình gọi hoặc xử lý API
-        console.error("<< Error When Calling API >> : ", error);
+        Notification.error("Lỗi khi gọi API", error.message);
 
         // Trả về mảng rỗng để đảm bảo ứng dụng không bị crash
         return [];

@@ -24,6 +24,7 @@ import { fetchAccounts } from "../../api/accountAPI";
 // Import Components
 import SocialIcon from "../SocialIcon";
 import InputField from "../InputField";
+import Notification from "../Notification";
 
 const Register = ({ handleLogInClick }) => {
   const navigate = useNavigate();
@@ -55,31 +56,24 @@ const Register = ({ handleLogInClick }) => {
         onSubmit={async (values, { setSubmitting, setErrors }) => {
           // Tạo user mới từ giá trị nhập vào
           const newUser = {
-            fullName: values.fullName,
-            email: values.email,
-            password: values.password,
-            phone: values.phone,
+            fullName: values.fullName.trim(),
+            phone: values.phone.trim(),
+            email: values.email.trim().toLowerCase(),
+            password: values.password.trim(),
             role: "user", // mặc định user
             status: "available"
           };
 
           try {
-            // Bước 1: Kiểm tra trùng email
-            const res = await fetch(
-              "https://mindx-mockup-server.vercel.app/api/resources/accounts_user?apiKey=67fe686cc590d6933cc1248b"
-            );
-            const data = await res.json();
-            const existingUsers = data?.data?.data || [];
+            const users = await fetchAccounts();
 
-            // Nếu email đã tồn tại → báo lỗi
-            const emailExists = existingUsers.some(
-              (user) =>
-                user.email ===
-                values.email.trim().toLowerCase()
+            const emailExists = users.some(
+              (user) => user.email === values.email.trim().toLowerCase()
             );
 
             if (emailExists) {
               setErrors({ email: "Email đã tồn tại!" });
+              Notification.error("Email đã tồn tại", "Vui lòng sử dụng email khác.");
               setSubmitting(false);
               return;
             }
@@ -96,14 +90,12 @@ const Register = ({ handleLogInClick }) => {
               }
             );
 
-            if (!response.ok) {
-              throw new Error("Register Failed");
-            }
+            if (!response.ok) throw new Error("Đăng ký thất bại");
 
-            console.log("✅ Register Success");
-            navigate("/login"); // điều hướng về login sau khi đăng ký
+            Notification.success("Đăng ký thành công!", "Đang chuyển hướng...");
+            setTimeout(() => handleLogInClick(), 1500); // ← không dùng navigate
           } catch (error) {
-            console.error("❌ Error Registering:", error);
+            Notification.error("Lỗi không xác định", error.message || "Thử lại sau.");
             alert("Đăng ký thất bại, thử lại sau.");
           } finally {
             setSubmitting(false); // tắt trạng thái loading
@@ -173,11 +165,10 @@ const Register = ({ handleLogInClick }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`font-semibold uppercase sign-up-action text-white focus:ring-camel hover:bg-camel rounded-lg text-sm px-5 py-6 text-center flex items-center me-2 mb-2 mt-5 ${
-                isSubmitting
-                  ? "bg-green-600 hover:bg-green-700 cursor-not-allowed"
-                  : "bg-camel hover:bg-logo_color"
-              }`}
+              className={`font-semibold uppercase sign-up-action text-white focus:ring-camel hover:bg-camel rounded-lg text-sm px-5 py-6 text-center flex items-center me-2 mb-2 mt-5 ${isSubmitting
+                ? "bg-green-600 hover:bg-green-700 cursor-not-allowed"
+                : "bg-camel hover:bg-logo_color"
+                }`}
             >
               {isSubmitting ? "Registering..." : "Sign Up"}
             </button>

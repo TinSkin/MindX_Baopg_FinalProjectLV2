@@ -1,3 +1,5 @@
+import Notification from "../components/Notification"; // import Notification đúng đường dẫn
+
 // Async function to get list of accounts from mock API
 export const fetchAccounts = async () => {
     try {
@@ -11,16 +13,12 @@ export const fetchAccounts = async () => {
         const result = await response.json()
 
         // Print raw result from API to console for debugging
-        console.log("<< Account API Raw Result: >> : ", result);
 
-        // Return array of user data from result.data.data
-        // Because mock API's data structure is: { data: { data: [...] } }
-        console.log(result.data.data)
+        // Return array of user data from result.data.data, because mock API's data structure is: { data: { data: [...] } }
         return result.data.data;
     } catch (error) {
-        // Catch error if call API or fail to parse JSON
-        console.error("<< Error When Calling API >> : ", error)
-
+        // Thông báo lỗi
+        Notification.error("Lỗi khi gọi API", error.message);
         // Return empty array to prevent app crash
         return [];
     }

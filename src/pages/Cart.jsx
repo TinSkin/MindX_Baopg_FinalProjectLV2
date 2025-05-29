@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"; // Import hook useEffect và useState để quản lý trạng thái và side-effect
 import { useNavigate } from "react-router-dom"; // Import hook useNavigate để điều hướng
 
+// Import Component
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 const Cart = () => {
   // Định nghĩa component Cart
@@ -52,13 +54,14 @@ const Cart = () => {
             </h3>
             <p className="text-center text-gray-600">Giỏ hàng trống.</p>
             <button
-              onClick={() => navigate("/hello")} // Chuyển hướng về trang Hello
-              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300 mx-auto block"
+              onClick={() => navigate("/menu")} // Chuyển hướng về trang Hello
+              className="mt-4 bg-dark_blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300 mx-auto block font-semibold"
             >
               Quay lại mua sắm
             </button>
           </div>
         </div>
+        <Footer />
       </>
     );
   }
@@ -130,8 +133,8 @@ const Cart = () => {
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded"
                             onError={(e) =>
-                              (e.target.src =
-                                "https://placehold.co/50x50?text=Image+Not+Found")
+                            (e.target.src =
+                              "https://placehold.co/50x50?text=Image+Not+Found")
                             }
                           />
                           <span className="font-bold text-lg">{item.name}</span>
@@ -179,6 +182,7 @@ const Cart = () => {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 };

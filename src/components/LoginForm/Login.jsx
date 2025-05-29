@@ -18,6 +18,7 @@ import { fetchAccounts } from "../../api/accountAPI";
 // Import Components
 import SocialIcon from "../SocialIcon";
 import InputField from "../InputField";
+import Notification from "../Notification";
 
 const Login = ({ handleRegisterClick }) => {
   // Khởi tạo hook điều hướng
@@ -46,10 +47,8 @@ const Login = ({ handleRegisterClick }) => {
             // Gọi API lấy danh sách tài khoản
             const accounts = await fetchAccounts();
 
-            // console.log(accounts[0].data); // Don't know why different from another person database
-
             // Tìm user khớp với email và password nhập vào
-            const user = accounts[0].data.find(
+            const user = accounts.find(
               (acc) =>
                 acc.email === values.email.trim() &&
                 acc.password === values.password.trim()
@@ -60,6 +59,8 @@ const Login = ({ handleRegisterClick }) => {
               localStorage.setItem("user", JSON.stringify(user));
               localStorage.setItem("isLoggedIn", "true");
 
+              Notification.success("Đăng nhập thành công!", "Chào mừng bạn quay lại.");
+
               // Điều hướng theo quyền
               if (user.role === "admin") {
                 navigate("/admin/products");
@@ -68,16 +69,13 @@ const Login = ({ handleRegisterClick }) => {
               }
             } else {
               // Nếu không khớp: hiển thị lỗi ở trường email
-              setErrors({ email: "Wrong Email or Password" });
+              Notification.error("Đăng nhập thất bại", "Sai email hoặc mật khẩu.")
+              setErrors({ email: "Sai Email hoặc Mật khẩu" });
             }
-
-            // Debugging Code
-            console.log("✅ Tìm thấy user:", user);
-            console.log("✅ Vai trò:", user?.role);
           } catch (error) {
             // Xử lý lỗi gọi API
-            console.error("Error When Validatin:", error);
             setErrors({ email: "Error Issue Log In" });
+            Notification.error("Đăng nhập thất bại", "Không lấy được dữ liệu.");
           } finally {
             // Dừng trạng thái đang xử lý
             setSubmitting(false);
@@ -147,11 +145,10 @@ const Login = ({ handleRegisterClick }) => {
               type="submit"
               disabled={isSubmitting}
               id="log-in-submit"
-              className={`font-bold uppercase log-in-action text-white  focus:ring-4 focus:outline-none rounded-lg text-sm px-5 py-6 text-center flex items-center focus:ring-camel hover:bg-camel my-5 me-2 ${
-                isSubmitting
-                  ? "bg-green-600 hover:bg-green-700 cursor-not-allowed"
-                  : "bg-camel hover:bg-logo_color"
-              }`}
+              className={`font-bold uppercase log-in-action text-white  focus:ring-4 focus:outline-none rounded-lg text-sm px-5 py-6 text-center flex items-center focus:ring-camel hover:bg-camel my-5 me-2 ${isSubmitting
+                ? "bg-green-600 hover:bg-green-700 cursor-not-allowed"
+                : "bg-camel hover:bg-logo_color"
+                }`}
             >
               {isSubmitting ? "Loading..." : "Log In"}
             </button>
