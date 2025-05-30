@@ -1,15 +1,35 @@
 import { useEffect, useState } from "react"; // Import hook useEffect và useState để quản lý trạng thái và side-effect
 import { useNavigate } from "react-router-dom"; // Import hook useNavigate để điều hướng
 
+// Formik Yup
+import { Formik, Form, Field, ErrorMessage } from "formik";
+
+// Import Schema
+import { checkOutSchema } from "../utils/checkOutSchema";
+
 // Import Component
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Notification from "../components/Notification";
 
 const Cart = () => {
   // Định nghĩa component Cart
   const navigate = useNavigate(); // Khởi tạo hook useNavigate
   const [cartItems, setCartItems] = useState([]); // Trạng thái lưu danh sách sản phẩm trong giỏ hàng
   const [isLoading, setIsLoading] = useState(false); // Trạng thái loading
+
+  const handleCheckOut = (values) => {
+    console.log("Giá trị getTotal():", getTotal());
+    // Lưu thông tin vào localStorage
+    localStorage.setItem("checkoutInfo", JSON.stringify(values));
+
+    // Xóa giỏ hàng
+    localStorage.removeItem("cart");
+
+    Notification.success("Đã tạo đơn hàng thành công!");
+
+    navigate("/checkout");
+  };
 
   // Hàm tải giỏ hàng từ localStorage
   useEffect(() => {
@@ -37,11 +57,13 @@ const Cart = () => {
 
   // Hàm xóa sản phẩm khỏi giỏ hàng
   const removeItem = (id, sizeOption, toppings) => {
-    const updatedCart = cartItems.filter(item =>
-      !(item.id === id &&
-        item.sizeOption === sizeOption &&
-        JSON.stringify(item.toppings) === JSON.stringify(toppings)
-      )
+    const updatedCart = cartItems.filter(
+      (item) =>
+        !(
+          item.id === id &&
+          item.sizeOption === sizeOption &&
+          JSON.stringify(item.toppings) === JSON.stringify(toppings)
+        )
     ); // Lọc ra sản phẩm không có ID cần xóa
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart)); // Cập nhật localStorage
@@ -125,7 +147,10 @@ const Cart = () => {
                       <th className="p-3 text-left text-lg font-semibold">
                         Đá
                       </th>
-                      <th colSpan={3} className="p-3 text-left text-lg font-semibold">
+                      <th
+                        colSpan={3}
+                        className="p-3 text-left text-lg font-semibold"
+                      >
                         Topping
                       </th>
                       <th className="p-3 text-left text-lg font-semibold">
@@ -144,17 +169,26 @@ const Cart = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {cartItems.map((item) => (
-                      <tr key={item.id + item.sizeOption + JSON.stringify(item.toppings)}>
+                      <tr
+                        key={
+                          item.productId +
+                          item.sizeOption +
+                          JSON.stringify(item.toppings)
+                        }
+                      >
                         <td className="p-3 flex items-center space-x-3">
                           <img
                             src={item.image}
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded"
                             onError={(e) =>
-                              (e.target.src = "https://placehold.co/50x50?text=Image+Not+Found")
+                              (e.target.src =
+                                "https://placehold.co/50x50?text=Image+Not+Found")
                             }
                           />
-                          <span className="font-bold text-lg text-dark_blue">{item.productName}</span>
+                          <span className="font-bold text-lg text-dark_blue">
+                            {item.productName}
+                          </span>
                         </td>
                         <td className="p-3 text-lg text-dark_blue">
                           {item.sugarLevel.toLocaleString()}%
@@ -172,12 +206,13 @@ const Cart = () => {
                                 {typeof option === "object"
                                   ? option.name
                                   : option}
-                                :
+                                : <span></span>
                               </span>
                               <span className="text-white">
                                 {typeof option.extraPrice === "number"
                                   ? option.extraPrice.toLocaleString()
-                                  : "N/A"}₫
+                                  : "N/A"}
+                                ₫
                               </span>
                             </div>
                           ))}
@@ -207,7 +242,11 @@ const Cart = () => {
                         <td className="p-3">
                           <button
                             onClick={() =>
-                              removeItem(item.id, item.sizeOption, item.toppings)
+                              removeItem(
+                                item.id,
+                                item.sizeOption,
+                                item.toppings
+                              )
                             }
                             className="text-red-600 hover:text-red-800 font-semibold"
                           >
@@ -219,14 +258,75 @@ const Cart = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-6 text-right">
-                <p className="text-xl font-bold">Tổng tiền: {getTotal()} ₫</p>
-                <button
-                  onClick={() => navigate("/checkout")}
-                  className="mt-4 bg-dark_blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-dark_blue transition duration-300"
+              <div className="mt-6">
+                <Formik
+                  initialValues={{
+                    fullName: "",
+                    phone: "",
+                    address: "",
+                    totalPrice: getTotal(),
+                  }}
+                  validationSchema={checkOutSchema}
+                  onSubmit={(values) => {
+                    console.log("Submitting Testing: ", values);
+                    handleCheckOut(values);
+                  }}
                 >
-                  Thanh toán
-                </button>
+                  <Form className="flex justify-between">
+                    <div>
+                      {/* Thêm Name */}
+                      <Field
+                        name="fullName"
+                        type="text"
+                        className="w-full p-2 border rounded mb-4 font-semibold border-dark_blue"
+                        placeholder="Full Name"
+                      />
+                      <ErrorMessage
+                        name="fullName"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+
+                      {/* Thêm Phone */}
+                      <Field
+                        name="phone"
+                        type="text"
+                        className="w-full p-2 border rounded mb-4 font-semibold border-dark_blue"
+                        placeholder="Phone"
+                      />
+                      <ErrorMessage
+                        name="phone"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+
+                      {/* Thêm Address */}
+                      <Field
+                        name="address"
+                        as="textarea"
+                        className="w-full p-2 border rounded mb-4 font-semibold border-dark_blue"
+                        placeholder="Address"
+                      />
+                      <ErrorMessage
+                        name="address"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xl font-bold">
+                        Tổng tiền: {getTotal()} ₫
+                      </p>
+                      <button
+                        type="submit"
+                        className="mt-4 bg-dark_blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-dark_blue transition duration-300"
+                      >
+                        Đặt hàng
+                      </button>
+                    </div>
+                  </Form>
+                </Formik>
               </div>
             </>
           )}

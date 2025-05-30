@@ -12,7 +12,8 @@ import Auth from "./pages/Auth";
 import Intro from "./pages/Intro";
 import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
-import Promotion from "./pages/Promotion";
+import Promotion from "./pages/Checkout";
+import Checkout from "./pages/Checkout";
 
 // Import Error Page
 import NotFound from "./pages/notfound/NotFound";
@@ -53,7 +54,7 @@ function App() {
           {/* <Route path="/cart" element={<Cart />} /> Trang giỏ hàng */}
           {/* <Route path="/product/:id" element={<ProductDetail />} />{" "} */}
           {/* Trang chi tiết sản phẩm với ID động */}
-          {/* <Route path="/checkout" element={<Checkout />} />{" "} */}
+          <Route path="/checkout" element={<Checkout />} />{" "}
           {/* Trang thanh toán */}
         </Route>
         {/* 🔐 Các route chỉ dành cho admin */}

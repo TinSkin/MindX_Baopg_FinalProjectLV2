@@ -97,7 +97,6 @@ function Menu() {
       setProducts(displayed); // ✅ chỉ còn sản phẩm "available"
       setFilteredProducts(displayed);
       setDisplayedProducts(displayed);
-
     } catch (error) {
       console.error("Không thể tải danh sách sản phẩm:", error); // Log lỗi nếu không tải được sản phẩm
       alert(
@@ -149,8 +148,7 @@ function Menu() {
         // Sắp xếp danh sách sản phẩm
         if (sortOption === "price-asc")
           return a.price - b.price; // Sắp xếp giá tăng dần
-        else if (sortOption === "price-desc")
-          return b.price - a.price; // Sắp xếp giá giảm dần
+        else if (sortOption === "price-desc") return b.price - a.price; // Sắp xếp giá giảm dần
       });
     }
 
@@ -186,10 +184,9 @@ function Menu() {
 
           <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
             {/* Product List */}
-            <div className="flex-1">
+            <div className="">
               {/* Sort & Search */}
               <div className="flex gap-4 justify-between mb-5">
-                {" "}
                 {/* Nhóm các bộ lọc và sắp xếp */}
                 {/* Ô tìm kiếm */}
                 <input
@@ -197,13 +194,13 @@ function Menu() {
                   placeholder="Tìm kiếm theo tên..."
                   value={searchTerm} // Giá trị từ trạng thái
                   onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi nhập
-                  className="p-2 border rounded w-72"
+                  className="p-2 border-2 rounded w-72 border-dark_blue"
                 />
                 {/* Dropdown sắp xếp */}
                 <select
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
-                  className="p-2 border rounded"
+                  className="p-2 border-2 rounded border-dark_blue"
                 >
                   <option value="">Không sắp xếp</option>
                   <option value="price-asc">Giá: Tăng dần</option>
@@ -217,8 +214,10 @@ function Menu() {
                   Không tải được sản phẩm
                 </p>
               ) : (
-                <ProductList products={products} displayedProducts={displayedProducts} />
-              )}
+                <ProductList
+                  products={products}
+                  displayedProducts={displayedProducts}
+                />              )}
               {/* Pagination */}
               {filteredProducts.length > 0 && ( // Hiển thị phân trang nếu có sản phẩm
                 <div className="flex justify-between items-center mt-4">
@@ -237,10 +236,11 @@ function Menu() {
                         <button
                           key={number}
                           onClick={() => paginate(number)}
-                          className={`px-3 py-1 rounded font-semibold ${currentPage === number
-                            ? "bg-dark_blue text-white"
-                            : "bg-gray-200 hover:bg-gray-300"
-                            }`}
+                          className={`px-3 py-1 rounded font-semibold ${
+                            currentPage === number
+                              ? "bg-dark_blue text-white"
+                              : "bg-gray-200 hover:bg-gray-300"
+                          }`}
                         >
                           {number}
                         </button>
