@@ -96,7 +96,6 @@ const Register = ({ handleLogInClick }) => {
             setTimeout(() => handleLogInClick(), 1500); // ← không dùng navigate
           } catch (error) {
             Notification.error("Lỗi không xác định", error.message || "Thử lại sau.");
-            alert("Đăng ký thất bại, thử lại sau.");
           } finally {
             setSubmitting(false); // tắt trạng thái loading
           }

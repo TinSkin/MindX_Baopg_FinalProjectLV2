@@ -20,17 +20,29 @@ const Cart = () => {
   }, []); // Chạy một lần khi component mount
 
   // Hàm cập nhật số lượng sản phẩm
-  const updateQuantity = (id, quantity) => {
-    const updatedCart = cartItems.map((item) =>
-      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
-    ); // Cập nhật số lượng, đảm bảo không dưới 1
+  const updateQuantity = (id, sizeOption, toppings, quantity) => {
+    const updatedCart = cartItems.map((item) => {
+      if (
+        item.id === id &&
+        item.sizeOption === sizeOption &&
+        JSON.stringify(item.toppings) === JSON.stringify(toppings)
+      ) {
+        return { ...item, quantity: Math.max(1, quantity) }; // Cập nhật số lượng, đảm bảo >=1
+      }
+      return item;
+    });
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart)); // Lưu vào localStorage
   };
 
   // Hàm xóa sản phẩm khỏi giỏ hàng
-  const removeItem = (id) => {
-    const updatedCart = cartItems.filter((item) => item.id !== id); // Lọc ra sản phẩm không có ID cần xóa
+  const removeItem = (id, sizeOption, toppings) => {
+    const updatedCart = cartItems.filter(item =>
+      !(item.id === id &&
+        item.sizeOption === sizeOption &&
+        JSON.stringify(item.toppings) === JSON.stringify(toppings)
+      )
+    ); // Lọc ra sản phẩm không có ID cần xóa
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart)); // Cập nhật localStorage
   };
@@ -70,14 +82,14 @@ const Cart = () => {
     <>
       <Header />
       <div className="min-h-screen bg-gray-100 py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-2xl font-bold text-dark_blue text-center mb-6">
             Giỏ hàng của bạn
           </h3>
           {isLoading ? (
             <div className="text-center">
               <svg
-                className="animate-spin h-12 w-12 text-blue-600 mx-auto"
+                className="animate-spin h-12 w-12 text-dark_blue mx-auto"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -100,46 +112,77 @@ const Cart = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl">
                 <table className="min-w-full bg-white border divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-dark_blue text-white">
                     <tr>
-                      <th className="p-3 text-left text-lg font-semibold text-gray-700">
-                        Sản phẩm
+                      <th className="p-3 text-left text-lg font-semibold">
+                        Tên
                       </th>
-                      <th className="p-3 text-left text-lg font-semibold text-gray-700">
+                      <th className="p-3 text-left text-lg font-semibold">
+                        Đường
+                      </th>
+                      <th className="p-3 text-left text-lg font-semibold">
+                        Đá
+                      </th>
+                      <th colSpan={3} className="p-3 text-left text-lg font-semibold">
+                        Topping
+                      </th>
+                      <th className="p-3 text-left text-lg font-semibold">
                         Giá
                       </th>
-                      <th className="p-3 text-left text-lg font-semibold text-gray-700">
+                      <th className="p-3 text-left text-lg font-semibold">
                         Số lượng
                       </th>
-                      <th className="p-3 text-left text-lg font-semibold text-gray-700">
+                      <th className="p-3 text-left text-lg font-semibold">
                         Thành tiền
                       </th>
-                      <th className="p-3 text-left text-lg font-semibold text-gray-700">
+                      <th className="p-3 text-left text-lg font-semibold">
                         Hành động
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {cartItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
+                      <tr key={item.id + item.sizeOption + JSON.stringify(item.toppings)}>
                         <td className="p-3 flex items-center space-x-3">
                           <img
-                            src={
-                              item.images[0] ||
-                              "https://placehold.co/50x50?text=Default+Image"
-                            }
+                            src={item.image}
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded"
                             onError={(e) =>
-                            (e.target.src =
-                              "https://placehold.co/50x50?text=Image+Not+Found")
+                              (e.target.src = "https://placehold.co/50x50?text=Image+Not+Found")
                             }
                           />
-                          <span className="font-bold text-lg">{item.name}</span>
+                          <span className="font-bold text-lg text-dark_blue">{item.productName}</span>
                         </td>
-                        <td className="p-3 text-lg text-gray-900">
+                        <td className="p-3 text-lg text-dark_blue">
+                          {item.sugarLevel.toLocaleString()}%
+                        </td>
+                        <td className="p-3 text-lg text-dark_blue">
+                          {item.iceOption.toLocaleString()}
+                        </td>
+                        <td colSpan={3} className="p-3 text-lg text-dark_blue">
+                          {item.toppings.map((option, index) => (
+                            <div
+                              key={index}
+                              className="block mx-1 px-2 py-1 bg-dark_blue mt-2 rounded text-left"
+                            >
+                              <span className="text-white">
+                                {typeof option === "object"
+                                  ? option.name
+                                  : option}
+                                :
+                              </span>
+                              <span className="text-white">
+                                {typeof option.extraPrice === "number"
+                                  ? option.extraPrice.toLocaleString()
+                                  : "N/A"}₫
+                              </span>
+                            </div>
+                          ))}
+                        </td>
+                        <td className="p-3 text-lg text-dark_blue">
                           {item.price.toLocaleString()} ₫
                         </td>
                         <td className="p-3">
@@ -147,7 +190,12 @@ const Cart = () => {
                             type="number"
                             value={item.quantity}
                             onChange={(e) =>
-                              updateQuantity(item.id, parseInt(e.target.value))
+                              updateQuantity(
+                                item.id,
+                                item.sizeOption,
+                                item.toppings,
+                                parseInt(e.target.value)
+                              )
                             }
                             min="1"
                             className="w-16 p-1 border rounded text-center"
@@ -158,8 +206,10 @@ const Cart = () => {
                         </td>
                         <td className="p-3">
                           <button
-                            onClick={() => removeItem(item.id)}
-                            className="text-red-600 hover:text-red-800"
+                            onClick={() =>
+                              removeItem(item.id, item.sizeOption, item.toppings)
+                            }
+                            className="text-red-600 hover:text-red-800 font-semibold"
                           >
                             Xóa
                           </button>
@@ -173,7 +223,7 @@ const Cart = () => {
                 <p className="text-xl font-bold">Tổng tiền: {getTotal()} ₫</p>
                 <button
                   onClick={() => navigate("/checkout")}
-                  className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                  className="mt-4 bg-dark_blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-dark_blue transition duration-300"
                 >
                   Thanh toán
                 </button>

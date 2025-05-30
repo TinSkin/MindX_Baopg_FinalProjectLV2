@@ -19,13 +19,6 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 function Menu() {
-  const navigate = useNavigate(); // Khởi tạo hook useNavigate
-  const { id } = useParams(); // Lấy ID sản phẩm từ URL
-  const [product, setProduct] = useState(null); // Trạng thái lưu thông tin sản phẩm
-  const [relatedProducts, setRelatedProducts] = useState([]); // Trạng thái sản phẩm tương tự
-  const [recentProducts, setRecentProducts] = useState([]); // Trạng thái sản phẩm gần đây
-  const [reviews, setReviews] = useState([]); // Trạng thái đánh giá
-
   // Loading
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -191,77 +184,79 @@ function Menu() {
             <Category />
           </FadeInOnScroll>
 
-          {/* Product List */}
-          <div className="flex-1">
-            {/* Sort & Search */}
-            <div className="flex gap-4 justify-between mb-5">
-              {" "}
-              {/* Nhóm các bộ lọc và sắp xếp */}
-              {/* Ô tìm kiếm */}
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên..."
-                value={searchTerm} // Giá trị từ trạng thái
-                onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi nhập
-                className="p-2 border rounded w-72"
-              />
-              {/* Dropdown sắp xếp */}
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="p-2 border rounded"
-              >
-                <option value="">Không sắp xếp</option>
-                <option value="price-asc">Giá: Tăng dần</option>
-                <option value="price-desc">Giá: Giảm dần</option>
-              </select>
-            </div>
-
-            {/* Display Producat */}
-            {filteredProducts.length === 0 && searchTerm ? (
-              <p className="text-center text-gray-600 text-lg">
-                Không tải được sản phẩm
-              </p>
-            ) : (
-              <ProductList products={products} displayedProducts={displayedProducts} />
-            )}
-            {/* Pagination */}
-            {filteredProducts.length > 0 && ( // Hiển thị phân trang nếu có sản phẩm
-              <div className="flex justify-between items-center mt-4">
-                <button
-                  onClick={prevPage}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-dark_blue text-white rounded hover:bg-dark_blue/80 disabled:bg-gray-400 font-semibold"
+          <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
+            {/* Product List */}
+            <div className="flex-1">
+              {/* Sort & Search */}
+              <div className="flex gap-4 justify-between mb-5">
+                {" "}
+                {/* Nhóm các bộ lọc và sắp xếp */}
+                {/* Ô tìm kiếm */}
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo tên..."
+                  value={searchTerm} // Giá trị từ trạng thái
+                  onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi nhập
+                  className="p-2 border rounded w-72"
+                />
+                {/* Dropdown sắp xếp */}
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="p-2 border rounded"
                 >
-                  Trang trước
-                </button>
-                <div className="flex gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (
-                      number // Tạo danh sách số trang
-                    ) => (
-                      <button
-                        key={number}
-                        onClick={() => paginate(number)}
-                        className={`px-3 py-1 rounded font-semibold ${currentPage === number
-                          ? "bg-dark_blue text-white"
-                          : "bg-gray-200 hover:bg-gray-300"
-                          }`}
-                      >
-                        {number}
-                      </button>
-                    )
-                  )}
-                </div>
-                <button
-                  onClick={nextPage}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-dark_blue text-white rounded hover:bg-bg-dark_blue/80 disabled:bg-gray-400 font-semibold"
-                >
-                  Trang sau
-                </button>
+                  <option value="">Không sắp xếp</option>
+                  <option value="price-asc">Giá: Tăng dần</option>
+                  <option value="price-desc">Giá: Giảm dần</option>
+                </select>
               </div>
-            )}
+
+              {/* Display Producat */}
+              {filteredProducts.length === 0 && searchTerm ? (
+                <p className="text-center text-gray-600 text-lg">
+                  Không tải được sản phẩm
+                </p>
+              ) : (
+                <ProductList products={products} displayedProducts={displayedProducts} />
+              )}
+              {/* Pagination */}
+              {filteredProducts.length > 0 && ( // Hiển thị phân trang nếu có sản phẩm
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    onClick={prevPage}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-dark_blue text-white rounded hover:bg-dark_blue/80 disabled:bg-gray-400 font-semibold"
+                  >
+                    Trang trước
+                  </button>
+                  <div className="flex gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (
+                        number // Tạo danh sách số trang
+                      ) => (
+                        <button
+                          key={number}
+                          onClick={() => paginate(number)}
+                          className={`px-3 py-1 rounded font-semibold ${currentPage === number
+                            ? "bg-dark_blue text-white"
+                            : "bg-gray-200 hover:bg-gray-300"
+                            }`}
+                        >
+                          {number}
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <button
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-dark_blue text-white rounded hover:bg-bg-dark_blue/80 disabled:bg-gray-400 font-semibold"
+                  >
+                    Trang sau
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Cart */}

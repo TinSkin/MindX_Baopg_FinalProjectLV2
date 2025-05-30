@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 // Import các icon Pencil, Eye, Trash2 từ thư viện lucide-react để dùng trong giao diện
-import { Currency, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 // Formik Yup
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -73,7 +73,7 @@ const AdminProduct = () => {
     { name: "Pudding Trứng", extraPrice: 16800 },
     { name: "Đậu Đỏ", extraPrice: 14400 },
   ];
-  
+
   // Hàm parseCustomDate: Chuyển đổi định dạng ngày tháng dạng "15, thg 10, 2024" thành Date object để sắp xếp
   const parseCustomDate = (dateStr) => {
     if (!dateStr || typeof dateStr !== "string") {
@@ -112,7 +112,7 @@ const AdminProduct = () => {
 
   // Hàm loadProducts: Lấy danh sách sản phẩm từ server và cập nhật trạng thái
   const loadProducts = async () => {
-    console.log("Loading products...");
+    // console.log("Loading products...");
     try {
       setIsLoading(true); // Bật trạng thái loading
       const result = await fetchProducts(); // Gọi API để lấy danh sách sản phẩm
@@ -134,7 +134,6 @@ const AdminProduct = () => {
                 product.id &&
                 product.name // Sản phẩm phải là object, có id và name
             );
-            console.log(`Products from result[${index}].data:`, validProducts); // Log danh sách sản phẩm hợp lệ để debug
             productsList = [...productsList, ...validProducts];
           }
         });
@@ -145,20 +144,17 @@ const AdminProduct = () => {
         // Loại bỏ sản phẩm trùng lặp dựa trên id
         new Map(productsList.map((item) => [item.id, item])).values()
       );
-      console.log("Parsed product list:", uniqueProducts); // Log danh sách sản phẩm sau khi loại bỏ trùng lặp
+      // console.log("Parsed product list:", uniqueProducts); // Log danh sách sản phẩm sau khi loại bỏ trùng lặp
       if (!Array.isArray(uniqueProducts)) {
         // Kiểm tra nếu danh sách không phải mảng
-        console.error(
-          "Dữ liệu không đúng định dạng, trả về mảng rỗng:",
-          uniqueProducts
-        ); // Log lỗi
+        Notification.error("Dữ liệu sản phẩm không hợp lệ", "Danh sách đã được reset.");
         setProducts([]); // Reset products về mảng rỗng
         setFilteredProducts([]); // Reset filteredProducts về mảng rỗng
         setDisplayedProducts([]); // Reset displayedProducts về mảng rỗng
       } else {
-        console.log("Số lượng sản phẩm tải được:", uniqueProducts.length); // Log số lượng sản phẩm tải được
         setProducts(uniqueProducts); // Cập nhật trạng thái products
         setFilteredProducts(uniqueProducts); // Cập nhật trạng thái filteredProducts
+        Notification.success(`Tải thành công ${uniqueProducts.length} sản phẩm.`);
       }
 
       // UNAVAILABLE PRODUCTS
@@ -170,25 +166,16 @@ const AdminProduct = () => {
         "unavailableProducts",
         JSON.stringify(unavailableProducts)
       );
-      console.log(
-        "Unavailable product IDs saved to localStorage:",
-        unavailableProducts
-      ); // Log danh sách ID đã lưu
+      // console.log("Unavailable product IDs saved to localStorage:",unavailableProducts); // Log danh sách ID đã lưu
 
       // STORED UNAVAILABLE PRODUCTS
       const storedUnavailableProducts = JSON.parse(
         // Đọc lại danh sách ID từ localStorage để xác nhận
         localStorage.getItem("unavailableProducts") || "[]"
       );
-      console.log(
-        "Confirmed unavailable product IDs in localStorage:",
-        storedUnavailableProducts
-      ); // Log để xác nhận
+      // console.log("Confirmed unavailable product IDs in localStorage:", storedUnavailableProducts); // Log để xác nhận
     } catch (error) {
-      console.error("Không thể tải danh sách sản phẩm:", error); // Log lỗi nếu không tải được sản phẩm
-      alert(
-        `Không thể tải danh sách sản phẩm: ${error.message}. Vui lòng thử lại sau.`
-      ); // Hiển thị thông báo lỗi cho người dùng
+      Notification.error("Không thể tải danh sách sản phẩm", error.message);
       setProducts([]); // Reset products về mảng rỗng
       setFilteredProducts([]); // Reset filteredProducts về mảng rỗng
       setDisplayedProducts([]); // Reset displayedProducts về mảng rỗng
@@ -408,11 +395,10 @@ const AdminProduct = () => {
   const handleEditProduct = (product) => {
     if (product.status === "unavailable") {
       // Kiểm tra nếu sản phẩm không khả dụng
-      alert("Không thể chỉnh sửa sản phẩm có trạng thái 'unavailable'.");
+      Notification.warning("Không thể chỉnh sửa sản phẩm có trạng thái 'unavailable'.");
       return;
     }
     setEditingProduct(product); // Lưu thông tin sản phẩm cần chỉnh sửa
-    console.log(product)
     setImagePreviews(product.image); // Hiển thị preview ảnh của sản phẩm
     setShowEditModal(true); // Mở modal chỉnh sửa
   };
@@ -636,10 +622,7 @@ const AdminProduct = () => {
       // Đọc danh sách sản phẩm unavailable từ localStorage
       localStorage.getItem("unavailableProducts") || "[]"
     );
-    console.log(
-      "Initial unavailable product IDs in localStorage:",
-      storedUnavailableProducts
-    ); // Log để debug
+    // console.log("Initial unavailable product IDs in localStorage:",storedUnavailableProducts); // Log để debug
 
     loadProducts(); // Gọi hàm loadProducts để tải danh sách sản phẩm
   }, [navigate]); // Chạy lại khi navigate thay đổi
@@ -680,28 +663,27 @@ const AdminProduct = () => {
       if (!response.ok) {
         // Kiểm tra nếu yêu cầu thất bại
         const errorText = await response.text(); // Lấy thông tin lỗi
-        console.error("Server response status:", response.status); // Log mã lỗi
-        console.error("Server response text:", errorText); // Log chi tiết lỗi
+        // console.error("Server response status:", response.status); // Log mã lỗi
+        // console.error("Server response text:", errorText); // Log chi tiết lỗi
         throw new Error(
           "Lỗi từ server: " + response.statusText + " - " + errorText
         ); // Ném lỗi
       }
 
       const result = await response.json(); // Lấy kết quả từ server
-      console.log("Server response after soft delete:", result); // Log kết quả
+      // console.log("Server response after soft delete:", result); // Log kết quả
       await loadProducts(); // Tải lại danh sách sản phẩm từ server
+
+      Notification.success("Đã cập nhật trạng thái sản phẩm", "Sản phẩm đã được chuyển sang 'unavailable'");
 
       const storedUnavailableProducts = JSON.parse(
         // Đọc lại danh sách unavailable từ localStorage
         localStorage.getItem("unavailableProducts") || "[]"
       );
-      console.log(
-        "After soft delete, unavailable product IDs in localStorage:",
-        storedUnavailableProducts
-      ); // Log để xác nhận
+      // console.log("After soft delete, unavailable product IDs in localStorage:",storedUnavailableProducts); // Log để xác nhận
     } catch (error) {
-      console.error("Lỗi khi thay đổi trạng thái sản phẩm:", error); // Log lỗi
-      alert(`Thay đổi trạng thái thất bại: ${error.message}. Thử lại sau.`); // Thông báo lỗi
+      // console.error("Lỗi khi thay đổi trạng thái sản phẩm:", error); // Log lỗi
+      Notification.error("Cập nhật thất bại", error.message);
       setProducts(products); // Khôi phục danh sách sản phẩm nếu lỗi
     } finally {
       setIsLoading(false); // Tắt trạng thái loading
@@ -712,10 +694,8 @@ const AdminProduct = () => {
     <>
       <Header />
       <div className="max-w-full mx-auto mt-10 p-6 bg-white rounded shadow">
-        {" "}
         {/* Container chính */}
         <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
-          {" "}
           {/* Container cho các nút và bộ lọc */}
           <div className="flex gap-4">
             {/* Nhóm nút Soft Delete All và Add New */}
@@ -761,7 +741,6 @@ const AdminProduct = () => {
             </button>
           </div>
           <div className="flex gap-4 flex-wrap">
-            {" "}
             {/* Nhóm các bộ lọc và sắp xếp */}
             {/* Ô tìm kiếm */}
             <input
@@ -809,7 +788,6 @@ const AdminProduct = () => {
           </div>
         </div>
         <div className="overflow-x-auto rounded-md">
-          {" "}
           {/* Container bảng, hỗ trợ cuộn ngang nếu bảng quá rộng */}
           {filteredProducts.length === 0 && searchTerm ? ( // Kiểm tra nếu không tìm thấy sản phẩm và có từ khóa tìm kiếm
             <p className="text-center text-gray-600 text-lg">
@@ -817,10 +795,8 @@ const AdminProduct = () => {
             </p>
           ) : (
             <table className="min-w-full border-2 divide-y divide-gray-200">
-              {" "}
               {/* Bảng hiển thị sản phẩm */}
               <thead className="bg-green_starbuck">
-                {" "}
                 {/* Phần tiêu đề bảng */}
                 <tr className="text-center">
                   <th className="p-3 text-lg font-semibold text-white">
@@ -853,14 +829,12 @@ const AdminProduct = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {" "}
                 {/* Phần thân bảng */}
                 {displayedProducts.map(
                   (
                     item // Duyệt qua danh sách sản phẩm hiển thị
                   ) => (
                     <tr key={item.id} className="hover:bg-gray-50 text-center">
-                      {" "}
                       {/* Dòng sản phẩm, đổi màu khi hover */}
                       <td className="p-3">
                         <input type="checkbox" /> {/* Checkbox chọn sản phẩm */}
@@ -871,10 +845,8 @@ const AdminProduct = () => {
                       </td>
                       {/* NAME & IMAGE */}
                       <td className="p-3 flex items-center space-x-3">
-                        {" "}
                         {/* Cột tên và ảnh */}
                         <div className="w-[150px] h-[150px]">
-                          {" "}
                           {/* Container ảnh */}
                           <Swiper
                             modules={[Autoplay]} // Sử dụng module Autoplay
@@ -914,7 +886,7 @@ const AdminProduct = () => {
                       </td>
                       {/* DESCRIPTION */}
                       <td className="p-3 text-lg text-gray-900">
-                        {item.description || "N/A"}{" "}
+                        {item.description || "N/A"}
                         {/* Hiển thị tên sản phẩm */}
                       </td>
                       {/* CATEGORY */}
@@ -925,7 +897,7 @@ const AdminProduct = () => {
                       <td className="p-3 text-lg text-camel font-semibold">
                         {typeof item.price === "number"
                           ? item.price.toLocaleString()
-                          : "N/A"}{" "}
+                          : "N/A"}
                         {/* Hiển thị giá, định dạng số */}₫
                       </td>
                       {/* SIZE */}
@@ -939,13 +911,13 @@ const AdminProduct = () => {
                               <span className="text-white">
                                 {typeof option === "object"
                                   ? option.size
-                                  : option}{" "}
-                                :{" "}
+                                  : option}
+                                :
                               </span>
                               <span className="text-dark_blue">
                                 {typeof option.price === "number"
                                   ? option.price.toLocaleString()
-                                  : "N/A"}{" "}₫
+                                  : "N/A"}₫
                               </span>
                             </div>
                           ))}
@@ -961,13 +933,13 @@ const AdminProduct = () => {
                               <span className="text-white">
                                 {typeof option === "object"
                                   ? option.name
-                                  : option}{" "}
-                                :{" "}
+                                  : option}
+                                :
                               </span>
                               <span className="text-dark_blue">
                                 {typeof option.extraPrice === "number"
                                   ? option.extraPrice.toLocaleString()
-                                  : "N/A"}{" "}₫
+                                  : "N/A"}₫
                               </span>
                             </div>
                           ))}
@@ -988,7 +960,6 @@ const AdminProduct = () => {
                       {/* ACTION */}
                       <td className="p-3">
                         <div className="flex items-center justify-start space-x-2">
-                          {" "}
                           {/* Nhóm các nút hành động */}
                           <Pencil
                             className="w-4 h-4 text-blue-600 cursor-pointer"

@@ -41,9 +41,9 @@ function Header() {
           <ul className="flex gap-6 text-white font-semibold uppercase">
             <Link
               to={"/"}
-              className={`cursor-pointer hover:text-camel border-solid hover:border-b-2 hover:border-camel ${
+              className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
                 location.pathname === "/"
-                  ? "border-b-2 border-camel"
+                  ? "border-b-4 border-camel"
                   : "hover:text-camel"
               }`}
             >
@@ -51,9 +51,9 @@ function Header() {
             </Link>
             <Link
               to={"/admin/products"}
-              className={`cursor-pointer hover:text-camel border-solid hover:border-b-2 hover:border-camel ${
-                location.pathname === "/intro"
-                  ? "border-b-2 border-camel"
+              className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
+                location.pathname === "/admin/products"
+                  ? "border-b-4 border-camel"
                   : "hover:text-camel"
               }`}
             >
@@ -61,9 +61,9 @@ function Header() {
             </Link>
             <Link
               to={"/admin/accounts"}
-              className={`cursor-pointer hover:text-camel border-solid hover:border-b-2 hover:border-camel ${
-                location.pathname === "/promotion"
-                  ? "border-b-2 border-camel"
+              className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
+                location.pathname === "/admin/accounts"
+                  ? "border-b-4 border-camel"
                   : "hover:text-camel"
               }`}
             >
@@ -71,8 +71,8 @@ function Header() {
             </Link>
             <Link
               to={"/admin/orders"}
-              className={`cursor-pointer hover:text-camel border-solid hover:border-b-2 hover:border-camel ${
-                location.pathname === "/menu"
+              className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
+                location.pathname === "/admin/orders"
                   ? "border-b-2 border-camel"
                   : "hover:text-camel"
               }`}
