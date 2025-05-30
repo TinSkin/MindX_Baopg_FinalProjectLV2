@@ -109,7 +109,7 @@ function Header() {
                   <div className="font-semibold">{user.fullName}</div>
                   <div className="font-medium truncate text-camel">{user.email}</div>
                 </div>
-                <ul className="py-2 text-sm text-dark_blue">
+                {/* <ul className="py-2 text-sm text-dark_blue">
                   <li>
                     <a href="#" className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold">
                       Dashboard
@@ -125,7 +125,7 @@ function Header() {
                       Earnings
                     </a>
                   </li>
-                </ul>
+                </ul> */}
                 <div className="py-2">
                   <button
                     type="button"

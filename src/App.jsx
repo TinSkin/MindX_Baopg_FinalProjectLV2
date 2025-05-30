@@ -111,7 +111,7 @@ function App() {
           {/* Chatbot Header */}
           <div className="chat-header">
             <div className="header-info">
-              <ChatbotIcon />
+              <ChatbotIcon/>
               <h2 className="logo-text">Trợ Lý Hệ Thống</h2>
             </div>
             <button
@@ -153,7 +153,7 @@ function App() {
         <Route path="/promotion" element={<Promotion />} />
         {/* <Route path="/menu" element={<Menu />} /> */}
         <Route path="/unauthorized" element={<Unauthorized />} />{" "}
-        <Route path="/404" element={<NotFound />} />{" "}
+        <Route path="*" element={<NotFound />} />{" "}
         <Route element={<PrivateRoute />}>
           <Route path="/menu" element={<Menu />} />{" "}
           <Route path="/cart" element={<Cart />} />{" "}

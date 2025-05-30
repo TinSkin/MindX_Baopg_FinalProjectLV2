@@ -101,7 +101,7 @@ function Header() {
                     {user.email}
                   </div>
                 </div>
-                <ul className="py-2 text-sm text-dark_blue">
+                {/* <ul className="py-2 text-sm text-dark_blue">
                   <li>
                     <a
                       href="#"
@@ -126,7 +126,7 @@ function Header() {
                       Earnings
                     </a>
                   </li>
-                </ul>
+                </ul> */}
                 <div className="py-2">
                   <button
                     type="button"
