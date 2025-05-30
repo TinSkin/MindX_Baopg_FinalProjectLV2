@@ -748,13 +748,13 @@ const AdminProduct = () => {
               placeholder="Tìm kiếm theo tên..."
               value={searchTerm} // Giá trị từ trạng thái
               onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi nhập
-              className="p-2 border rounded w-64"
+              className="p-2 border-2 rounded w-64 border-dark_blue"
             />
             {/* Dropdown lọc trạng thái */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border-2 rounded border-dark_blue"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="available">Available</option>
@@ -764,7 +764,7 @@ const AdminProduct = () => {
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border-2 rounded border-dark_blue"
             >
               <option value="">Không sắp xếp</option>
               <option value="price-asc">Giá: Tăng dần</option>
@@ -779,7 +779,7 @@ const AdminProduct = () => {
                 setItemsPerPage(parseInt(e.target.value));
                 setCurrentPage(1); // Reset về trang 1 khi thay đổi
               }}
-              className="p-2 border rounded"
+              className="p-2 border-2 rounded border-dark_blue"
             >
               <option value="5">5</option>
               <option value="10">10</option>

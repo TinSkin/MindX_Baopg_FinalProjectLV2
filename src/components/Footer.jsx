@@ -33,7 +33,7 @@ const Footer = () => {
         <div className="col-span-2">
           {/* Thông tin */}
           <h3 className="font-semibold mb-5 text-logo_color text-lg">
-            CÔNG TY CP TM & DV TACO VIỆT NAM
+            CÔNG TY CP TM & DV PENNY VIỆT NAM
           </h3>
           <ul className="space-y-4">
             <li className="flex items-start">

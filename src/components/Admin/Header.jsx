@@ -11,7 +11,6 @@ function Header() {
 
   const [user, setUser] = useState(null);
 
-
   const handleLoginClick = () => {
     navigate("/login");
   };
@@ -69,16 +68,6 @@ function Header() {
             >
               Tài khoản
             </Link>
-            <Link
-              to={"/admin/orders"}
-              className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
-                location.pathname === "/admin/orders"
-                  ? "border-b-2 border-camel"
-                  : "hover:text-camel"
-              }`}
-            >
-              Đơn hàng
-            </Link>
           </ul>
 
           {user ? (
@@ -108,21 +97,32 @@ function Header() {
               >
                 <div className="px-4 py-3 text-md text-dark_blue ">
                   <div className="font-semibold">{user.fullName}</div>
-                  <div className="font-medium truncate text-camel">{user.email}</div>
+                  <div className="font-medium truncate text-camel">
+                    {user.email}
+                  </div>
                 </div>
                 <ul className="py-2 text-sm text-dark_blue">
                   <li>
-                    <a href="#" className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold">
+                    <a
+                      href="#"
+                      className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold"
+                    >
                       Dashboard
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold">
+                    <a
+                      href="#"
+                      className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold"
+                    >
                       Settings
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold">
+                    <a
+                      href="#"
+                      className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold"
+                    >
                       Earnings
                     </a>
                   </li>

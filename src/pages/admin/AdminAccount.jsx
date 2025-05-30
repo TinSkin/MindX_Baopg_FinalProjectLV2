@@ -405,13 +405,13 @@ const AdminAccount = () => {
               placeholder="Tìm kiếm theo tên..."
               value={searchTerm} // Giá trị từ trạng thái
               onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi nhập
-              className="p-2 border rounded w-64"
+              className="p-2 border-2 border-dark_blue rounded w-64"
             />
             {/* Dropdown lọc trạng thái */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border-2 border-dark_blue rounded"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="available">Available</option>
@@ -421,7 +421,7 @@ const AdminAccount = () => {
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border-2 border-dark_blue rounded"
             >
               <option value="">Không sắp xếp</option>
               <option value="price-asc">Giá: Tăng dần</option>
@@ -436,7 +436,7 @@ const AdminAccount = () => {
                 setItemsPerPage(parseInt(e.target.value));
                 setCurrentPage(1); // Reset về trang 1 khi thay đổi
               }}
-              className="p-2 border rounded"
+              className="p-2 border-2 border-dark_blue rounded"
             >
               <option value="5">5</option>
               <option value="10">10</option>
