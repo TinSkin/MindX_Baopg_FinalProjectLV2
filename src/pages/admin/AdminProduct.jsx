@@ -69,7 +69,6 @@ const AdminProduct = () => {
     { name: "Nha Đam", extraPrice: 14400 },
     { name: "Thạch Trái Cây", extraPrice: 14400 },
     { name: "Socola Chip", extraPrice: 14400 },
-    { name: "Thạch Trái Cây", extraPrice: 14400 },
     { name: "Pudding Trứng", extraPrice: 16800 },
     { name: "Đậu Đỏ", extraPrice: 14400 },
   ];
@@ -813,9 +812,9 @@ const AdminProduct = () => {
                   <th className="p-3 text-lg font-semibold text-white">
                     Category
                   </th>
-                  <th className="p-3 text-lg font-semibold text-white">
+                  {/* <th className="p-3 text-lg font-semibold text-white">
                     Price
-                  </th>
+                  </th> */}
                   <th className="p-3 text-lg font-semibold text-white">Size</th>
                   <th className="p-3 text-lg font-semibold text-white">
                     Topping
@@ -894,27 +893,27 @@ const AdminProduct = () => {
                         {item.category || "N/A"} {/* Hiển thị tên sản phẩm */}
                       </td>
                       {/* PRICE */}
-                      <td className="p-3 text-lg text-camel font-semibold">
+                      {/* <td className="p-3 text-lg text-camel font-semibold">
                         {typeof item.price === "number"
                           ? item.price.toLocaleString()
                           : "N/A"}
-                        {/* Hiển thị giá, định dạng số */}₫
-                      </td>
+                        ₫
+                      </td> */}
                       {/* SIZE */}
                       <td className="p-3 text-lg text-gray-900">
                         {Array.isArray(item.sizeOptions) &&
                           item.sizeOptions.map((option, index) => (
                             <div
                               key={index}
-                              className="block mx-1 px-2 py-1 bg-logo_color mt-2 rounded text-left"
+                              className="block mx-1 px-2 py-1 bg-dark_blue mt-2 rounded text-left"
                             >
-                              <span className="text-white">
+                              <span className="text-white font-semibold">
                                 {typeof option === "object"
                                   ? option.size
                                   : option}
-                                :
+                                :{" "}
                               </span>
-                              <span className="text-dark_blue">
+                              <span className="text-white">
                                 {typeof option.price === "number"
                                   ? option.price.toLocaleString()
                                   : "N/A"}₫
@@ -928,15 +927,15 @@ const AdminProduct = () => {
                           item.toppings.map((option, index) => (
                             <div
                               key={index}
-                              className="block mx-1 px-2 py-1 bg-logo_color mt-2 rounded text-left"
+                              className="block mx-1 px-2 py-1 bg-dark_blue mt-2 rounded text-left"
                             >
-                              <span className="text-white">
+                              <span className="text-white font-semibold">
                                 {typeof option === "object"
                                   ? option.name
                                   : option}
-                                :
+                                :{" "}
                               </span>
-                              <span className="text-dark_blue">
+                              <span className="text-white font-semibold">
                                 {typeof option.extraPrice === "number"
                                   ? option.extraPrice.toLocaleString()
                                   : "N/A"}₫

@@ -15,7 +15,7 @@ import Auth from "./pages/Auth";
 import Intro from "./pages/Intro";
 import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
-import Promotion from "./pages/Checkout";
+import Promotion from "./pages/Promotion";
 import Checkout from "./pages/Checkout";
 
 // Lấy Components và dữ liệu AI
@@ -30,7 +30,6 @@ import Unauthorized from "./pages/unauthorized/Unauthorized";
 
 // Import Admin Components
 import AdminProduct from "./pages/admin/AdminProduct";
-import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAccount from "./pages/admin/AdminAccount";
 
 // Import component dùng để bảo vệ route
@@ -151,11 +150,11 @@ function App() {
         <Route path="/login" element={<Auth />} />
         <Route path="/intro" element={<Intro />} />
         <Route path="/promotion" element={<Promotion />} />
-        {/* <Route path="/menu" element={<Menu />} /> */}
+        <Route path="/menu" element={<Menu />} />
         <Route path="/unauthorized" element={<Unauthorized />} />{" "}
         <Route path="*" element={<NotFound />} />{" "}
         <Route element={<PrivateRoute />}>
-          <Route path="/menu" element={<Menu />} />{" "}
+          {/* <Route path="/menu" element={<Menu />} />{" "} */}
           <Route path="/cart" element={<Cart />} />{" "}
           {/* Trang user sau khi đăng nhập */}
           {/* <Route path="/cart" element={<Cart />} /> Trang giỏ hàng */}

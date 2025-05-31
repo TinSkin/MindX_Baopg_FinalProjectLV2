@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
@@ -15,11 +16,16 @@ import { addOrderSchema } from "../utils/addOrderSchema";
 import Notification from "./Notification";
 
 function ProductCard(props) {
+  const navigate = useNavigate();
   // Loading
   const [isLoading, setIsLoading] = useState(false); // Trạng thái isLoading: Kiểm soát trạng thái loading khi thực hiện các thao tác (thêm, sửa, xóa)
 
   // Modal
-  const [showAddModal, setShowAddModal] = useState(false); // Trạng thái showAddModal: Kiểm soát hiển thị modal 
+  const [showAddModal, setShowAddModal] = useState(false); // Trạng thái showAddModal: Kiểm soát hiển thị modal
+
+  const minPrice = props.sizeOptions?.length
+    ? Math.min(...props.sizeOptions.map(opt => Number(opt.price) || 0))
+    : 0;
 
   // Hàm handleAddProduct: Thêm sản phẩm mới
   // const handleAddProduct = async (values) => {
@@ -203,6 +209,21 @@ function ProductCard(props) {
     setShowAddModal(false)
   };
 
+  const handleAddClick = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!isLoggedIn || !user) {
+      // Nếu chưa đăng nhập
+      Notification.warning("Bạn cần đăng nhập để thêm sản phẩm!");
+      // Hoặc chuyển hướng
+      navigate("/login");
+      return;
+    }
+
+    // Nếu đã đăng nhập, mở modal
+    setShowAddModal(true);
+  }
+
   return (
     <>
       <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition cursor-pointer">
@@ -239,9 +260,9 @@ function ProductCard(props) {
             {props.name}
           </h3>
           <p className="text-logo_color text-sm mb-2 font-semibold">
-            {props.price.toLocaleString()}đ
+            Từ {" "} {minPrice.toLocaleString()}đ
           </p>
-          <button onClick={() => setShowAddModal(true)} className="bg-dark_blue hover:bg-camel text-white py-1 px-2 rounded text-sm flex items-center justify-center w-full">
+          <button onClick={() => handleAddClick(true)} className="bg-dark_blue hover:bg-camel text-white py-1 px-2 rounded text-sm flex items-center justify-center w-full">
             <span className="mr-1">+</span> Thêm
           </button>
         </div>
