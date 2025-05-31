@@ -94,7 +94,7 @@ function Header() {
                 }}
               >
                 <img
-                  className="w-8 h-8 rounded-full"
+                  className="w-12 h-12 rounded-full"
                   src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
                   alt="user"
                 />

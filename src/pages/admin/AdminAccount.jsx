@@ -386,17 +386,6 @@ const AdminAccount = () => {
       <div className="max-w-full mx-auto mt-10 p-6 bg-white rounded shadow">
         {/* Container chính */}
         <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
-          {/* Container cho các nút và bộ lọc */}
-          <div className="flex gap-4">
-            {/* Nhóm nút Soft Delete All và Add New */}
-            <button
-              onClick={() => setShowAddModal(true)} // Mở modal thêm sản phẩm
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold"
-              disabled={isLoading}
-            >
-              + Add New
-            </button>
-          </div>
           <div className="flex gap-4 flex-wrap">
             {/* Nhóm các bộ lọc và sắp xếp */}
             {/* Ô tìm kiếm */}

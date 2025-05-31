@@ -38,7 +38,7 @@ function Header() {
         </div>
         <div className="flex w-[70%] items-center justify-around">
           <ul className="flex gap-6 text-white font-semibold uppercase">
-            <Link
+            {/* <Link
               to={"/"}
               className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
                 location.pathname === "/"
@@ -47,7 +47,7 @@ function Header() {
               }`}
             >
               Trang chủ
-            </Link>
+            </Link> */}
             <Link
               to={"/admin/products"}
               className={`cursor-pointer hover:text-camel border-solid hover:border-b-4 hover:border-camel ${
@@ -84,7 +84,7 @@ function Header() {
                 }}
               >
                 <img
-                  className="w-8 h-8 rounded-full"
+                  className="w-12 h-12 rounded-full"
                   src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
                   alt="user"
                 />
@@ -111,20 +111,20 @@ function Header() {
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="#"
+                    <Link
+                      to="/admin/products"
                       className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold"
                     >
-                      Settings
-                    </a>
+                      Ad
+                    </Link>
                   </li>
                   <li>
-                    <a
+                    <Link to
                       href="#"
                       className="block px-4 py-2 hover:bg-camel hover:text-white font-semibold"
                     >
                       Earnings
-                    </a>
+                    </Link>
                   </li>
                 </ul> */}
                 <div className="py-2">
